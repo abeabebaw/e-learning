@@ -1,29 +1,32 @@
+// controllers/clerkWebhooks.js
 import { Webhook } from "svix";
-import user from "../models/user.js";
+import User from "../models/user.js";
 
 export const clerkWebhooks = async (req, res) => {
   try {
     const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+
+    // Verify the webhook
     await whook.verify(JSON.stringify(req.body), {
       "svix-id": req.headers["svix-id"],
       "svix-timestamp": req.headers["svix-timestamp"],
-      "svix-signature": req.headers["svix-signature"]
+      "svix-signature": req.headers["svix-signature"],
     });
 
     const { data, type } = req.body;
-    console.log(`Processing webhook: ${type}`, data); // Add logging
+    console.log(`Processing webhook: ${type}`, data);
 
     switch (type) {
       case "user.created": {
         const userData = {
           _id: data.id,
-          firstName: data.first_name || '', // Match schema
-          lastName: data.last_name || '',   // Match schema
-          email: data.email_addresses[0].email_address,
+          firstName: data.first_name || '',
+          lastName: data.last_name || '',
+          email: data.email_addresses?.[0]?.email_address,
           imageUrl: data.image_url,
         };
-        console.log('Creating user:', userData); // Debug log
-        await user.create(userData);
+        console.log('Creating user:', userData);
+        await User.create(userData);
         res.json({ message: "User created successfully" });
         break;
       }
@@ -32,18 +35,18 @@ export const clerkWebhooks = async (req, res) => {
         const userData = {
           firstName: data.first_name || '',
           lastName: data.last_name || '',
-          email: data.email_addresses[0].email_address,
+          email: data.email_addresses?.[0]?.email_address,
           imageUrl: data.image_url,
         };
-        console.log('Updating user:', data.id, userData); // Debug log
-        await user.findByIdAndUpdate(data.id, userData);
+        console.log('Updating user:', data.id, userData);
+        await User.findByIdAndUpdate(data.id, userData, { new: true });
         res.json({ message: "User updated successfully" });
         break;
       }
 
       case "user.deleted": {
-        console.log('Deleting user:', data.id); // Debug log
-        await user.findByIdAndDelete(data.id);
+        console.log('Deleting user:', data.id);
+        await User.findByIdAndDelete(data.id);
         res.json({ message: "User deleted successfully" });
         break;
       }
@@ -54,7 +57,7 @@ export const clerkWebhooks = async (req, res) => {
         break;
     }
   } catch (error) {
-    console.error("Webhook verification failed:", error);
+    console.error("Webhook verification or processing failed:", error);
     res.status(400).json({ error: "Webhook processing failed" });
   }
 };
