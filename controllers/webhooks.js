@@ -3,7 +3,6 @@ import user from "../models/user.js";
 
 export const clerkWebhooks = async (req, res) => {
   try {
-    // Verify webhook signature
     const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
     await whook.verify(JSON.stringify(req.body), {
       "svix-id": req.headers["svix-id"],
@@ -12,15 +11,18 @@ export const clerkWebhooks = async (req, res) => {
     });
 
     const { data, type } = req.body;
+    console.log(`Processing webhook: ${type}`, data); // Add logging
 
     switch (type) {
-      case "user.created": { // Fixed: removed extra space
+      case "user.created": {
         const userData = {
           _id: data.id,
-          email: data.email_addresses[0].email_address, // Fixed: consistent property name
-          name: `${data.first_name} ${data.last_name}`,
+          firstName: data.first_name || '', // Match schema
+          lastName: data.last_name || '',   // Match schema
+          email: data.email_addresses[0].email_address,
           imageUrl: data.image_url,
         };
+        console.log('Creating user:', userData); // Debug log
         await user.create(userData);
         res.json({ message: "User created successfully" });
         break;
@@ -28,16 +30,19 @@ export const clerkWebhooks = async (req, res) => {
 
       case "user.updated": {
         const userData = {
-          email: data.email_addresses[0].email_address, // Fixed: consistent property name
-          name: `${data.first_name} ${data.last_name}`,
+          firstName: data.first_name || '',
+          lastName: data.last_name || '',
+          email: data.email_addresses[0].email_address,
           imageUrl: data.image_url,
         };
+        console.log('Updating user:', data.id, userData); // Debug log
         await user.findByIdAndUpdate(data.id, userData);
         res.json({ message: "User updated successfully" });
         break;
       }
 
       case "user.deleted": {
+        console.log('Deleting user:', data.id); // Debug log
         await user.findByIdAndDelete(data.id);
         res.json({ message: "User deleted successfully" });
         break;
