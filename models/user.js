@@ -1,9 +1,11 @@
+// models/user.js
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema(
   {
     _id: { type: String, required: true },
-    name: { type: String, required: true }, // Combined name
+    firstName: { type: String, default: '' },
+    lastName: { type: String, default: '' },
     email: {
       type: String,
       required: true,
@@ -19,9 +21,7 @@ const userSchema = new mongoose.Schema(
       },
     ],
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const User = mongoose.model('User', userSchema);
