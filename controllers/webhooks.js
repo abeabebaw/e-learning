@@ -1,6 +1,6 @@
 // controllers/clerkWebhooks.js
 import { Webhook } from "svix";
-import User from "../models/user.js";
+import Users from "../models/user.js";
 
 export const clerkWebhooks = async (req, res) => {
   try {
@@ -26,7 +26,7 @@ export const clerkWebhooks = async (req, res) => {
           imageUrl: data.image_url,
         };
         console.log('Creating user:', userData);
-        await User.create(userData);
+        await Users.create(userData);
         res.json({ message: "User created successfully" });
         break;
       }
@@ -39,14 +39,14 @@ export const clerkWebhooks = async (req, res) => {
           imageUrl: data.image_url,
         };
         console.log('Updating user:', data.id, userData);
-        await User.findByIdAndUpdate(data.id, userData, { new: true });
+        await Users.findByIdAndUpdate(data.id, userData, { new: true });
         res.json({ message: "User updated successfully" });
         break;
       }
 
       case "user.deleted": {
         console.log('Deleting user:', data.id);
-        await User.findByIdAndDelete(data.id);
+        await Users.findByIdAndDelete(data.id);
         res.json({ message: "User deleted successfully" });
         break;
       }
