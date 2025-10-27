@@ -10,8 +10,7 @@ app.use(cors());
 const PORT = process.env.PORT || 5000;
 
 app.get('/', (req, res) => {
-  console.log('You are connected successfully');
-  // Friendly, stable welcome message
+  console.log("You are connected successfully");
   res.send('Welcome to home page');
 });
 
