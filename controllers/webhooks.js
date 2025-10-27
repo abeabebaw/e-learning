@@ -70,4 +70,8 @@ export const clerkWebhooks = async (req, res) => {
       details: 'Webhook processing failed'
     });
   }
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 7e963f84d8ca53ac15f906cc003951adc9bba82d
