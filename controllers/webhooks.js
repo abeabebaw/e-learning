@@ -52,4 +52,8 @@ import User from "../models/user.js";
         res.json({success:false, massage:error.massage})
         
     }
+<<<<<<< HEAD
  }
+=======
+ }
+>>>>>>> 9c99c67dfec2f8eb3d4eb1cd783ba091bd06f528
