@@ -1,25 +1,55 @@
+import { Webhook } from "svix";
+import User from "../models/user.js";
+ export const clerkWebhooks=async(req,res)=>{
+    try {
+        const whook=new Webhook(process.env.CLERK_WEBHOOK_SECRET)
+        await whook.verify(JSON.stringify(req.body),{
+            "svix-id":req.headers["svix-id"],
+            "svix-timestamp": req.headers["svix-timestamp"],
+            "svix-signature":req.headers["svix-signature"]
 
-import express from 'express';
-import cors from 'cors';
-import 'dotenv/config';
-import connectDb from './config/mongodb.js';
-import { clerkWebhooks } from './controllers/webhooks.js';
+        })
+        const {data,type}=req.body
+        switch (type) {
+            case "user.created":{
+             const userData={
+                _id:data.id,
+                email:data.email_addresses[0].email_address,
+                name:data.first_name + " " +  data.last_name,
+                imageUrl:data.image_url,
+             }
+             await User.create(userData)
+             res.json({})
+              break;
 
-await connectDb();
+            }
+            case'user.updated':{
+                 const userData={
+               
+                email:data.email_addresses[0].email_address,
+                name:data.first_name + " " +  data.last_name,
+                imageUrl:data.image_url,
+             }
+             await User.findByIdAndUpdate(data.id,userData)
+             res.json({})
+             break;
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-const PORT = process.env.PORT || 5000;
-
-app.get('/', (req, res) => {
-  console.log('You are connected successfully');
-  res.send('Welcome to home page');
-});
-
-app.post('/clerk', express.raw({ type: 'application/json' }), clerkWebhooks);
-
-app.listen(PORT, () => {
-  console.log(`Server is running on PORT ${PORT}`);
-});
+            }
+            case'user.deleted':{
+                await User.findByIdAndDelete(data.id)
+                res.json({})
+                break;
+            }
+               
+            
+               
+        
+            default:
+                break;
+        }
+        
+    } catch (error) {
+        res.json({success:false, massage:error.massage})
+        
+    }
+ }
