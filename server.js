@@ -1,32 +1,26 @@
-import express from 'express'
-import cors from 'cors'
-import 'dotenv/config'
-import connectDB from './config/mongodb.js'
-import { clerkWebhooks } from './controllers/webhooks.js'
+import express from 'express';
+import cors from 'cors';
+import 'dotenv/config';
+import connectDB from './config/mongodb.js';
+import { clerkWebhooks } from './controllers/webhooks.js';
+import educatorRouter from './routes/educatorRoutes.js';
+import { clerkMiddleware } from '@clerk/express';
 
-const app = express()
-<<<<<<< HEAD
+const app = express();
 connectDB();
-app.use(cors())
 
-=======
-connectDB()
-app.use(cors())
->>>>>>> 9c99c67dfec2f8eb3d4eb1cd783ba091bd06f528
+app.use(cors());
+// capture raw body for webhook signature verification while still parsing JSON
+app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf && buf.toString(); } }));
+app.use(clerkMiddleware());
 
 app.get('/', (req, res) => {
-  res.send('api working')
-})
-<<<<<<< HEAD
+  res.send('api working');
+});
 
-app.post('clerk',express.json(), clerkWebhooks)
-=======
+app.post('/clerk', clerkWebhooks);
+app.use('/api/educator', educatorRouter);
 
-// Corrected webhook route
-app.post('/clerk', express.json(), clerkWebhooks)
-
->>>>>>> 9c99c67dfec2f8eb3d4eb1cd783ba091bd06f528
-const PORT = process.env.PORT || 3000
-app.listen(PORT, () => {
-  console.log(`server is running on port ${PORT}`)
-})
+app.listen(5000, () => {
+  console.log('Server is running on port 5000');
+});
